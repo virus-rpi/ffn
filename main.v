@@ -23,11 +23,11 @@ fn get_usage_regex(matches []string) []string {
 	mut regex_list := []string{}
 	for m in matches {
 		cleaned_match := m.replace('fn', '').replace('(', '').trim(' ')
-		mut regex_pattern := regex.regex_opt(r'\{.*\}') or {
+		mut regex_pattern := regex.regex_opt(r'\{[^(^){\}]*\}') or {
 			println('Failed to compile inner regex: ${err}')
 			return []
 		}
-		regex_list << regex_pattern.replace(cleaned_match, r'\{.*\}') + r'\(\)'
+		regex_list << regex_pattern.replace(cleaned_match, r'\{[^(^){\}]*\}') + r'\(\)'
 	}
 
 	return regex_list
