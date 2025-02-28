@@ -1,0 +1,15 @@
+module test_file
+
+fn test_{name}  (name string) {
+	println('test_{name}()')
+}
+
+fn   meow_{nya}_{mmrp}(nya, mrrp string) {
+
+}
+
+fn test() {}
+
+fn meow() {
+	test_{"meow"}()
+}
