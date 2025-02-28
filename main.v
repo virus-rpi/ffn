@@ -55,9 +55,23 @@ fn find_usages(content string, usage_regex_list []string) []string {
 	return usages
 }
 
-fn reformat_usages(content string, usages []string) string { // TODO: put props in the right order
+fn get_usage_map(matches []string, content string) map[string]string {
+	mut result := map[string]string{}
+	for m in matches {
+		cleaned := m.replace('fn', '').replace('(', '').trim(' ')
+		mut re := regex.regex_opt(r'\{[^(^){\}]*\}') or { continue }
+		usage_pattern := re.replace(cleaned, r'\{[^(^){\}]*\}') + r'\(\)'
+		mut find_re := regex.regex_opt(usage_pattern) or { continue }
+		usages := find_re.find_all_str(content)
+		for usage in usages {
+			result[usage] = cleaned.replace('{', '').replace('}', '').trim(' ')
+		}
+	}
+	return result
+}
+
+fn reformat_usages(content string, usages []string, usage_map map[string]string) string { // TODO: put props in the right order
 	mut new_content := content
-	println(usages)
 	for usage in usages {
 		mut re := regex.regex_opt(r'\{[^(^){\}]*\}') or {
 			println('Failed to compile inner regex: ${err}')
@@ -68,8 +82,7 @@ fn reformat_usages(content string, usages []string) string { // TODO: put props 
 		for prop in inner_content {
 			props << prop.replace('{', '').replace('}', '').trim(' ')
 		}
-		mut new_usage := re.replace(usage, '').substr(0, re.replace(usage, '').len - 2) // TODO: Dont just remove the whole {prop} but instead put in the prop name from the function name
-		new_usage += '(' + props.join(', ') + ')'
+		new_usage := usage_map[usage] + '(' + props.join(', ') + ')'
 		new_content = new_content.replace(usage, new_usage)
 	}
 
@@ -86,10 +99,11 @@ fn main() {
 
 	content := get_file_content(file_path)
 	matches := get_function_names_with_format(content)
+	usage_map := get_usage_map(matches, content)
 	usage_regex_list := get_usage_regex(matches)
 	usages := find_usages(content, usage_regex_list)
 	mut new_content := reformat_function_names(content, matches)
-	new_content = reformat_usages(new_content, usages)
+	new_content = reformat_usages(new_content, usages, usage_map)
 	os.write_file(file_path.replace('.nv', '_generated.v'), new_content) or {
 		println('Failed to write file: ${err}')
 		return
