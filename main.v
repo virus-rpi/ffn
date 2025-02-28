@@ -46,6 +46,26 @@ fn find_usages(content string, usage_regex_list []string) []string {
 	return usages
 }
 
+fn reformat_usages(content string, usages []string) string {
+	mut new_content := content
+	for usage in usages {
+		mut re := regex.regex_opt(r'\{[^(^){\}]*\}') or {
+			println('Failed to compile inner regex: ${err}')
+			return ''
+		}
+		inner_content := re.find_all_str(usage)
+		mut props := []string{}
+		for prop in inner_content {
+			props << prop.replace('{', '').replace('}', '').trim(' ')
+		}
+		new_usage := re.replace(usage, '').substr(0, re.replace(usage, '').len - 2) + '(' +
+			props.join(', ') + ')'
+		new_content = content.replace(usage, new_usage)
+	}
+
+	return new_content
+}
+
 fn main() {
 	// if os.args.len < 2 {
 	//     println('Usage: ./ffn <file_path>')
@@ -56,12 +76,9 @@ fn main() {
 	file_path := 'test_file.nv'
 	content := get_file_content(file_path)
 	matches := get_function_names_with_format(content)
-	println('Found ${matches.len} matches')
 	usage_regex_list := get_usage_regex(matches)
 
 	usages := find_usages(content, usage_regex_list)
-	println('Found ${usages.len} usages')
-	for u in usages {
-		println(u)
-	}
+	new_content := reformat_usages(content, usages)
+	println(new_content)
 }
