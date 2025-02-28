@@ -2,6 +2,7 @@ module main
 
 import os
 import regex
+import time
 
 fn get_file_content(file_path string) string {
 	return os.read_file(file_path) or {
@@ -130,7 +131,7 @@ fn reformat_usages(content string, usages []string, usage_map map[string]UsageMa
 
 fn save_file(file_path string, content string) {
 	base := os.base(file_path).all_before_last('.')
-	new_file_path := os.dir(file_path) + os.path_separator + '_' + base + '_ffn.v'
+	new_file_path := os.dir(file_path) + os.path_separator + '_ffn_' + base.replace('.v.ffn', '.v')
 	os.write_file(new_file_path, content) or {
 		println('Failed to write file: ${err}')
 		return
@@ -147,17 +148,99 @@ fn formated_function_name_converter(content string) string {
 }
 
 fn convert_file(file_path string) {
+	if !file_path.ends_with('.v.ffn') {
+		return
+	}
 	content := get_file_content(file_path)
 	new_content := formated_function_name_converter(content)
 	save_file(file_path, new_content)
+	println('Converted: ${file_path}')
+}
+
+fn convert_directory(dir_path string) {
+	files := os.ls(dir_path) or {
+		println('Failed to list directory: ${err}')
+		return
+	}
+	for file in files {
+		full_path := os.join_path(dir_path, file)
+		if os.is_file(full_path) {
+			convert_file(full_path)
+		}
+	}
+}
+
+fn watch_file(file_path string) {
+	if !file_path.ends_with('.v.ffn') {
+		return
+	}
+	mut last_modified := os.file_last_mod_unix(file_path)
+	for {
+		time.sleep(2 * time.second)
+		modified := os.file_last_mod_unix(file_path)
+		if modified > last_modified {
+			if !os.is_file(file_path) {
+				println('Invalid path: ${file_path}, stopping watch on this file...')
+				return
+			}
+			println('Changes detected in "${file_path}", converting...')
+			convert_file(file_path)
+			last_modified = modified
+		}
+	}
+}
+
+fn watch_path(path string) {
+	if os.is_dir(path) {
+		files := os.ls(path) or {
+			println('Failed to list directory: ${err}')
+			return
+		}
+		for file in files {
+			full_path := os.join_path(path, file)
+			if os.is_file(full_path) {
+				go watch_file(full_path)
+			}
+		}
+	} else if os.is_file(path) {
+		go watch_file(path)
+	} else {
+		println('Invalid path: ${path}')
+	}
 }
 
 fn main() {
 	if os.args.len < 2 {
-		println('Usage: ./ffn <file_path>')
+		println('Usage: ffn [--watch] <file_or_directory1> <file_or_directory2> ...')
 		return
 	}
-	file_path := os.args[1]
 
-	convert_file(file_path)
+	mut watch := false
+	mut paths := []string{}
+	for arg in os.args[1..] {
+		if arg == '--watch' {
+			watch = true
+		} else {
+			paths << arg
+		}
+	}
+
+	for path in paths {
+		if watch {
+			go watch_path(path)
+		}
+		if os.is_dir(path) {
+			convert_directory(path)
+		} else if os.is_file(path) {
+			convert_file(path)
+		} else {
+			println('Invalid path: ${path}')
+		}
+	}
+
+	if watch {
+		for {
+			time.sleep(60 * time.second)
+		}
+	}
 }
