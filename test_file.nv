@@ -4,7 +4,7 @@ fn test_{name}  (name string) {
 	println('test_{name}()')
 }
 
-fn   meow_{nya}_{mmrp}(nya string, mrrp string) {
+fn   meow_{nya}_{mrrp}(mrrp string, nya string) {
 
 }
 
@@ -14,4 +14,5 @@ fn test() {
 
 fn meow() {
 	test_{"meow"}()
+	meow_{"1"}_{"2"}()
 }
