@@ -19,6 +19,15 @@ fn get_function_names_with_format(content string) []string {
 	return re.find_all_str(content)
 }
 
+fn reformat_function_names(content string, names []string) string {
+	mut new_content := content
+	for name in names {
+		new_name := name.replace('{', '').replace('}', '').trim(' ')
+		new_content = new_content.replace(name, new_name)
+	}
+	return new_content
+}
+
 fn get_usage_regex(matches []string) []string {
 	mut regex_list := []string{}
 	for m in matches {
@@ -46,8 +55,9 @@ fn find_usages(content string, usage_regex_list []string) []string {
 	return usages
 }
 
-fn reformat_usages(content string, usages []string) string {
+fn reformat_usages(content string, usages []string) string { // TODO: put props in the right order
 	mut new_content := content
+	println(usages)
 	for usage in usages {
 		mut re := regex.regex_opt(r'\{[^(^){\}]*\}') or {
 			println('Failed to compile inner regex: ${err}')
@@ -58,9 +68,9 @@ fn reformat_usages(content string, usages []string) string {
 		for prop in inner_content {
 			props << prop.replace('{', '').replace('}', '').trim(' ')
 		}
-		new_usage := re.replace(usage, '').substr(0, re.replace(usage, '').len - 2) + '(' +
-			props.join(', ') + ')'
-		new_content = content.replace(usage, new_usage)
+		mut new_usage := re.replace(usage, '').substr(0, re.replace(usage, '').len - 2) // TODO: Dont just remove the whole {prop} but instead put in the prop name from the function name
+		new_usage += '(' + props.join(', ') + ')'
+		new_content = new_content.replace(usage, new_usage)
 	}
 
 	return new_content
@@ -72,13 +82,16 @@ fn main() {
 	//     return
 	// }
 	// file_path := os.args[1]
-	//
-	file_path := 'test_file.nv'
+	file_path := './test_file.nv'
+
 	content := get_file_content(file_path)
 	matches := get_function_names_with_format(content)
 	usage_regex_list := get_usage_regex(matches)
-
 	usages := find_usages(content, usage_regex_list)
-	new_content := reformat_usages(content, usages)
-	println(new_content)
+	mut new_content := reformat_function_names(content, matches)
+	new_content = reformat_usages(new_content, usages)
+	os.write_file(file_path.replace('.nv', '_generated.v'), new_content) or {
+		println('Failed to write file: ${err}')
+		return
+	}
 }

@@ -8,7 +8,9 @@ fn   meow_{nya}_{mmrp}(nya, mrrp string) {
 
 }
 
-fn test() {}
+fn test() {
+    meow_{"nya"}_{"mrrp"}()
+}
 
 fn meow() {
 	test_{"meow"}()
