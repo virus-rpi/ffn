@@ -31,6 +31,7 @@ jobs:
       with:
         name: ffn-linux
         path: ./ffn
+        if-no-files-found: 'warn'
 
   build-windows:
     runs-on: windows-latest
@@ -54,3 +55,4 @@ jobs:
       with:
         name: ffn-windows
         path: ./ffn.exe
+        if-no-files-found: 'warn'
