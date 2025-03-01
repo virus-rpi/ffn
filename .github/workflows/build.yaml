@@ -29,8 +29,8 @@ jobs:
     - name: Upload Module
       uses: actions/upload-artifact@v4
       with:
-          name: v-module
-          path: ./ffn
+        name: ffn-linux
+        path: ./ffn
 
   build-windows:
     runs-on: windows-latest
@@ -52,5 +52,5 @@ jobs:
     - name: Upload Module
       uses: actions/upload-artifact@v4
       with:
-        name: v-module
-        path: './ffn.exe'
+        name: ffn-windows
+        path: ./ffn.exe
