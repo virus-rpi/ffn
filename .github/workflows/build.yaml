@@ -3,10 +3,10 @@ name: Build Vlang Module
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   build:
@@ -18,9 +18,9 @@ jobs:
 
     - name: Install V
       run: |
-        curl -O https://raw.githubusercontent.com/vlang/v/master/tools/vget.v
-        v vget.v
-        ./v -version
+        git clone --depth=1 https://github.com/vlang/v
+        cd v
+        make
 
     - name: Build V Module
       run: |
