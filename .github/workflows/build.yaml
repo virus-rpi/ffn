@@ -1,0 +1,27 @@
+name: Build Vlang Module
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install V
+      run: |
+        curl -O https://raw.githubusercontent.com/vlang/v/master/tools/vget.v
+        v vget.v
+        ./v -version
+
+    - name: Build V Module
+      run: |
+        ./v . -prod

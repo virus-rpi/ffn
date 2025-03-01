@@ -21,6 +21,15 @@ ffn [--watch] <file_or_directory1> <file_or_directory2> ...
 - `--watch`: Optional flag to watch the specified files or directories for changes.
 - `<file_or_directory>`: One or more files or directories to convert.
 
+
+## Building from Source
+
+To build the project from source, just run:
+
+```sh
+v . -prod
+```
+
 ### Example
 
 Convert a single file:
