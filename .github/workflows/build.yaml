@@ -27,7 +27,7 @@ jobs:
         ./v/v . -prod
 
     - name: Upload Module
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
           name: v-module
           path: ./ffn
@@ -50,7 +50,7 @@ jobs:
         ./v/v.exe . -prod
 
     - name: Upload Module
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: v-module
         path: './ffn.exe'
