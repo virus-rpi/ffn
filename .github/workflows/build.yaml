@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,3 +25,32 @@ jobs:
     - name: Build V Module
       run: |
         ./v/v . -prod
+
+    - name: Upload Module
+      uses: actions/upload-artifact@v3
+      with:
+          name: v-module
+          path: ./ffn
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install V
+      run: |
+        git clone --depth=1 https://github.com/vlang/v
+        cd v
+        ./make.bat
+
+    - name: Build V Module
+      run: |
+        ./v/v.exe . -prod
+
+    - name: Upload Module
+      uses: actions/upload-artifact@v3
+      with:
+        name: v-module
+        path: './ffn.exe'
